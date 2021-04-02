@@ -15,5 +15,6 @@ class SubPageStatus extends ChangeNotifier {
     } else {
       print("SubPageStatus - setCurrPage : skip");
     }
+    notifyListeners();
   }
 }

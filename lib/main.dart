@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:pager_indicator_prac/provider/graph_contoller.dart';
 import 'package:pager_indicator_prac/provider/page_status.dart';
 import 'package:pager_indicator_prac/provider/sub_page_status.dart';
-import 'package:pager_indicator_prac/ui/root.dart';
 import 'package:pager_indicator_prac/ui/root_with_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -24,13 +24,12 @@ class MyApp extends StatelessWidget {
           ChangeNotifierProvider<SubPageStatus>(
             create: (context) => SubPageStatus(),
           ),
+          ChangeNotifierProvider<GraphModeController>(
+            create: (context) => GraphModeController(),
+          ),
         ],
-        child: RootPage(),
+        child: RootPageWithProvdier(),
       ),
-      // ChangeNotifierProvider<CurrentPage>(
-      //   create: (context) => CurrentPage(),
-      //   child: RootPage(),
-      // ),
     );
   }
 }

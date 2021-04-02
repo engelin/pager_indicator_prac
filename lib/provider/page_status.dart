@@ -10,5 +10,6 @@ class CurrentPage extends ChangeNotifier {
       _currPage = 0;
     }
     _currPage = pagesStatus.floor();
+    notifyListeners();
   }
 }

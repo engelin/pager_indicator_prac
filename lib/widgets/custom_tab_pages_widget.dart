@@ -2,39 +2,77 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:pager_indicator_prac/constants.dart';
-import 'package:pager_indicator_prac/widgets/model/custom_tab_model.dart';
 
-class CustomTabPagesWidget extends StatefulWidget {
-  CustomTabPagesWidget({
+///
+/// [Description]
+/// This CustomTabPageView widget requires three parameters, the remaining four are optional.
+///
+/// [Example]
+/// final List<String> _pageNames = [
+///   'Customization',
+///   'TheTabBar'
+/// ];
+///
+/// final List<Widget> _pages = [
+///   Customization(),
+///   TheTabBar(),
+/// ];
+///
+/// CustomTabPageView(
+///   pages: _pages,
+///   pageNum: _pages.length,
+///   pageNames: _pageNames,
+/// ),
+///
+
+class CustomTabPageView extends StatefulWidget {
+  CustomTabPageView({
     @required this.pages,
     @required this.pageNum,
     @required this.pageNames,
-  })
-      : this.titleStyle = TextStyle(fontSize: 30.0, color: Colors.black45),
-        this.activeTitleStyle = TextStyle(fontSize: 30.0, color: Colors.black) {
+  })  : this.titleStyle = TextStyle(fontSize: 30.0, color: Colors.black45),
+        this.activeTitleStyle = TextStyle(fontSize: 30.0, color: Colors.black),
+        this.tabTop = 10.0,
+        this.tabLeft = 20.0 {
+    assert(pages.length > 0);
+    assert(pageNames.length > 0);
     assert(pages.length == pageNum);
     assert(pages.length == pageNames.length);
   }
 
-  // Pages
+  /// List of pages which will be showed with tab
+  /// The number of this list should be same with pagesNum.
   final List<Widget> pages;
 
-  // Number of Pages
-  final int pageNum;
-
-  // Each name of pages
+  /// List of pageNames which will be showed as title of each tab page
+  /// The number of this list should be same with pagesNum.
   final List<String> pageNames;
 
-  // text title style
+  /// This parameter let know the number of pages
+  /// and let users double check the parameters whether they use properly or not.
+  /// The value of pageNum should be same with pages.length and pageNames.length
+  final int pageNum;
+
+  /// If users call Constructor with TextStyle in titleStyle, they change the tab title color.
+  /// The default value of tab color is Colors.black45.
   final TextStyle titleStyle;
+
+  /// This parameter is used to indicate the active tab title.
+  /// If users call Constructor with TextStyle in activeTitleStyle,
+  /// they change the active tab title color.
+  /// The default value of tab color is Colors.black.
   final TextStyle activeTitleStyle;
 
+  /// These two parameters is used for the point(x, y) indicating the starting position of tab titles.
+  /// The default position is (20, 10)
+  final double tabTop;
+  final double tabLeft;
+
   @override
-  _CustomTabPagesWidgetState createState() => _CustomTabPagesWidgetState();
+  _CustomTabPageViewState createState() => _CustomTabPageViewState();
 }
 
-class _CustomTabPagesWidgetState extends State<CustomTabPagesWidget> {
+class _CustomTabPageViewState extends State<CustomTabPageView> {
   //
   // PageController for CMBTabBar
   //
@@ -43,7 +81,7 @@ class _CustomTabPagesWidgetState extends State<CustomTabPagesWidget> {
   //
   // Current page's indicator variable
   //
-  double currPagePosition = 0;
+  double _currPagePosition = 0;
 
   @override
   void initState() {
@@ -51,7 +89,7 @@ class _CustomTabPagesWidgetState extends State<CustomTabPagesWidget> {
       setState(() {
         // Page position for Current page's indicator
         // 0.0 ~ (N-1).0
-        currPagePosition = _pageController.page;
+        _currPagePosition = _pageController.page;
       });
     });
     super.initState();
@@ -73,20 +111,23 @@ class _CustomTabPagesWidgetState extends State<CustomTabPagesWidget> {
             children: widget.pages,
           ),
           Positioned(
-            left: MUSCLES_PAGE_TAB_OFFSET,
+            left: widget.tabLeft,
+            top: widget.tabTop,
             child: _buildTabTitle(),
           ),
-          _buildTabUnderLine(currPagePosition, widget.pageNum),
+          Positioned(
+              top: widget.tabTop,
+              child: _buildTabUnderLine(_currPagePosition, widget.pageNum)),
         ],
       ),
     );
   }
 
-  ///
-  /// Calculate each title's size
-  ///
+  //
+  // Calculate each title's size
+  //
   List<Size> _calTitleSize(List<String> titles, TextStyle style) {
-    if(titles.length == 0 || null == style) {
+    if (titles.length == 0 || null == style) {
       assert(null != "Input parameters are invalid");
     }
 
@@ -109,9 +150,9 @@ class _CustomTabPagesWidgetState extends State<CustomTabPagesWidget> {
     return sizes;
   }
 
-  ///
-  /// Drawing Tab titles
-  ///
+  //
+  // Drawing Tab titles
+  //
   Widget _buildTabTitle() {
     List<Widget> titles = [];
 
@@ -120,7 +161,7 @@ class _CustomTabPagesWidgetState extends State<CustomTabPagesWidget> {
         style: TextButton.styleFrom(primary: Colors.white),
         child: Text(
           widget.pageNames[i],
-          style: (currPagePosition.round() == i)
+          style: (_currPagePosition.round() == i)
               ? widget.activeTitleStyle
               : widget.titleStyle,
         ),
@@ -144,7 +185,12 @@ class _CustomTabPagesWidgetState extends State<CustomTabPagesWidget> {
     List<Size> sizes = _calTitleSize(widget.pageNames, widget.titleStyle);
 
     return CustomPaint(
-        painter: CustomTabUnderLine(position: pos, number: num, sizes: sizes));
+        painter: CustomTabUnderLine(
+            position: pos,
+            number: num,
+            sizes: sizes,
+            top: widget.tabTop,
+            left: widget.tabLeft));
   }
 }
 
@@ -152,11 +198,20 @@ class CustomTabUnderLine extends CustomPainter {
   final double position;
   final int number;
   final List<Size> sizes;
+  final double top;
+  final double left;
 
   List<Offset> _offesets = [];
+  double _underLineLeft;
 
-  CustomTabUnderLine({this.position, this.number, this.sizes}) {
+  static const double _underLineHeight = 3;
+
+  CustomTabUnderLine(
+      {this.position, this.number, this.sizes, this.top, this.left}) {
     assert(0 != sizes.length);
+
+    _underLineLeft = this.left + 10;
+
     int ret = _initOffsets();
     if (0 != ret) {
       assert(0 == ret);
@@ -164,20 +219,21 @@ class CustomTabUnderLine extends CustomPainter {
   }
 
   int _initOffsets() {
-    double prevOffsetX = MUSCLES_PAGE_TAB_LINE_OFFSET;
+    double prevOffsetX = _underLineLeft;
     double prevWidth = 0.0;
 
     for (int i = 0; i < number; i++) {
+      assert(0 != sizes[i].width);
+
       double currOffsetX = 0.0;
       double currOffsetY = 0.0;
-      assert(0 != sizes[i].width);
       double currWidth = sizes[i].width;
 
       currOffsetX = prevOffsetX +
           prevWidth / 2 +
           currWidth / 2 +
-          i * MUSCLES_PAGE_TAB_LINE_SPACE_X;
-      currOffsetY = sizes[i].height + MUSCLES_PAGE_TAB_LINE_SPACE_Y;
+          i * left;
+      currOffsetY = sizes[i].height + top;
 
       _offesets.add(Offset(currOffsetX, currOffsetY));
 
@@ -204,7 +260,7 @@ class CustomTabUnderLine extends CustomPainter {
               Rect.fromCenter(
                   center: _offesets[i],
                   width: sizes[i].width,
-                  height: MUSCLES_PAGE_TAB_LINE_HEIGHT),
+                  height: _underLineHeight),
               Radius.circular(15)),
           Paint()
             ..color = Colors.black.withOpacity(0.5)
@@ -220,7 +276,7 @@ class CustomTabUnderLine extends CustomPainter {
 
     double currWidth = sizes[floorPos].width;
     double cursorX = 0.0;
-    double cursorY = sizes[roundPos].height + MUSCLES_PAGE_TAB_LINE_SPACE_Y;
+    double cursorY = sizes[roundPos].height + top;
 
     if (0 != (position - floorPos)) {
       currWidth = (1 - (position - roundPos).abs()) * sizes[roundPos].width;
@@ -236,7 +292,7 @@ class CustomTabUnderLine extends CustomPainter {
             Rect.fromCenter(
                 center: Offset(cursorX, cursorY),
                 width: (cos(position.abs() * pi)) * currWidth,
-                height: MUSCLES_PAGE_TAB_LINE_HEIGHT),
+                height: _underLineHeight),
             Radius.circular(15)),
         Paint()
           ..color = Colors.black

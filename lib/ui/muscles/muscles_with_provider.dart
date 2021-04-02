@@ -33,7 +33,7 @@ class MusclesPageWithProvider extends StatelessWidget {
                     transitionType: SharedAxisTransitionType.vertical,
                   );
                 },
-                child: _up ? DailyMusclesPage() : MonthlyMusclesPage(),
+                child: (true == _up) ? DailyMusclesPage() : MonthlyMusclesPage(),
               ),
             ),
             Positioned(
